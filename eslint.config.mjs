@@ -1,5 +1,5 @@
 import { FlatCompat } from '@eslint/eslintrc';
-import prettier from 'eslint-config-prettier';
+import prettier from 'eslint-config-prettier/flat';
 import importPlugin from 'eslint-plugin-import';
 import playwright from 'eslint-plugin-playwright';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';

@@ -1,6 +1,12 @@
 import Link from 'next/link';
 import { FaXTwitter } from 'react-icons/fa6';
 import { HiHome } from 'react-icons/hi';
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignOutButton,
+} from '@clerk/nextjs';
 
 export default function LeftSidebar() {
   return (
@@ -14,9 +20,20 @@ export default function LeftSidebar() {
           <span className="hidden font-bold xl:inline">Home</span>
         </div>
       </Link>
-      <button className="hidden h-9 w-48 cursor-pointer rounded-full bg-blue-400 font-bold text-white shadow-md transition-all duration-200 hover:brightness-95 xl:inline">
-        Sign In
-      </button>
+      <SignedIn>
+        <SignOutButton>
+          <button className="font-semi-bold hidden h-9 w-48 cursor-pointer rounded-full bg-blue-400 text-white shadow-md transition-all duration-200 hover:brightness-95 xl:inline">
+            Sign Out
+          </button>
+        </SignOutButton>
+      </SignedIn>
+      <SignedOut>
+        <SignInButton>
+          <button className="font-semi-bold hidden h-9 w-48 cursor-pointer rounded-full bg-blue-400 text-white shadow-md transition-all duration-200 hover:brightness-95 xl:inline">
+            Sign In
+          </button>
+        </SignInButton>
+      </SignedOut>
     </div>
   );
 }
