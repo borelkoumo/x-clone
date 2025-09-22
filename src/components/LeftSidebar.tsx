@@ -12,9 +12,9 @@ import MiniProfile from './MiniProfile';
 export default function LeftSidebar() {
   return (
     <div className="flex h-screen flex-col justify-between pb-4">
-      <div className="flex flex-col gap-4 p-3">
+      <div className="flex flex-col gap-4 md:p-3">
         <Link href="/">
-          <FaXTwitter className="h-16 w-16 cursor-pointer rounded-full p-3 transition-all duration-200 hover:bg-gray-100" />
+          <FaXTwitter className="h-14 w-14 cursor-pointer rounded-full p-3 transition-all duration-200 hover:bg-gray-100 md:h-16 md:w-16" />
         </Link>
         <Link href="/">
           <div className="flex w-fit cursor-pointer items-center justify-between gap-2 rounded-full p-3 transition-all duration-200 hover:bg-gray-100">
