@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
+import { SignedIn, useUser } from '@clerk/nextjs';
 import { HiOutlinePhotograph } from 'react-icons/hi';
 import React, { useState, useRef, useEffect } from 'react';
 import { app } from '@/lib/firebase/firebase';
@@ -14,23 +14,26 @@ import {
 import { slugify } from '@/lib/utils/slugify';
 
 export default function Input() {
-  const { user, isSignedIn, isLoaded } = useUser();
+  const { user } = useUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedFileUrl, setSelectedFileUrl] = useState<string | undefined>(
-    undefined,
-  );
+  const [selectedFileUrl, setSelectedFileUrl] = useState<
+    string | undefined | null
+  >(undefined);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | undefined>(
     undefined,
   );
   const [isUploadingFile, setIsUploadingFile] = useState(false);
-  const [uploadErrorMessage, setUploadErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [text, setText] = useState('');
+  const [isSubmittingPost, setIsSubmittingPost] = useState(false);
 
   const storage = getStorage(app);
 
-  if (!isSignedIn || !isLoaded) {
-    return null;
-  }
+  // if (!isSignedIn || !isLoaded) {
+  //   return null;
+  // }
 
   useEffect(() => {
     if (!selectedFile) return;
@@ -46,11 +49,11 @@ export default function Input() {
         if (!cancelled && success) {
           setUploadedFileUrl(fileUrl);
         } else if (!success && errorMessage) {
-          setUploadErrorMessage(errorMessage);
+          setErrorMessage(errorMessage);
         }
       })
       .catch(error => {
-        setUploadErrorMessage(error.message);
+        setErrorMessage(error.message);
       })
       .finally(() => {
         setIsUploadingFile(false);
@@ -76,11 +79,32 @@ export default function Input() {
     };
   }, [selectedFile]);
 
-  function handleFileInputInputClicked(
+  useEffect(() => {
+    textareaRef?.current?.focus();
+  }, []);
+
+  function handleSelectedFileImageClicked(
+    event: React.MouseEvent<SVGElement | HTMLImageElement>,
+  ): void {
+    resetPost();
+  }
+
+  function resetPost() {
+    setUploadedFileUrl(undefined);
+    setSelectedFile(null);
+    setSelectedFileUrl(null);
+    setErrorMessage('');
+    if (textareaRef.current) {
+      textareaRef.current.value = '';
+      textareaRef.current.focus();
+    }
+  }
+
+  function handleFileInputClicked(
     event: React.MouseEvent<SVGElement | HTMLImageElement>,
   ): void {
     fileInputRef.current?.click();
-    setUploadErrorMessage('');
+    setErrorMessage('');
   }
 
   function handleFileSelected(
@@ -97,7 +121,7 @@ export default function Input() {
     }
 
     if (!file.type.startsWith('image/')) {
-      setUploadErrorMessage('Please select an image. Only images are allowed');
+      setErrorMessage('Please select an image. Only images are allowed');
       return;
     }
 
@@ -107,52 +131,14 @@ export default function Input() {
       setSelectedFile(file);
     } catch (error: unknown) {
       if (error instanceof Error) {
-        setUploadErrorMessage(error.message);
+        setErrorMessage(error.message);
       } else {
-        setUploadErrorMessage('An unknown error occurred.');
+        setErrorMessage('An unknown error occurred.');
       }
     }
   }
 
   async function uploadFileToFirebase(file: File) {
-    // const storageRef = ref(
-    //   storage,
-    //   `images/${new Date().getTime()}_${slugify(file.name)}`,
-    // );
-    // // Push to firebase storage
-    // const uploadTask = uploadBytesResumable(storageRef, file);
-    // uploadTask.on(
-    //   'state_changed',
-    //   snapshot => {
-    //     // Observe state change events such as progress, pause, and resume
-    //     // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-    //     const progress =
-    //       (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-    //     console.log('Upload is ' + progress + '% done');
-    //     switch (snapshot.state) {
-    //       case 'paused':
-    //         console.log('Upload is paused');
-    //         break;
-    //       case 'running':
-    //         console.log('Upload is running');
-    //         break;
-    //     }
-    //   },
-    //   error => {
-    //     setIsUploadingFile(false);
-    //     setUploadErrorMessage(error.message);
-    //   },
-    //   () => {
-    //     // Handle successful uploads on complete
-    //     // For instance, get the download URL: https://firebasestorage.googleapis.com/...
-    //     getDownloadURL(uploadTask.snapshot.ref).then(downloadURL => {
-    //       console.log('File available at', downloadURL);
-    //       setUploadedFileUrl(downloadURL);
-    //       setIsUploadingFile(false);
-    //       setUploadErrorMessage('');
-    //     });
-    //   },
-    // );
     const storageRef = ref(
       storage,
       `images/${new Date().getTime()}_${slugify(file.name)}`,
@@ -172,55 +158,102 @@ export default function Input() {
     }
   }
 
+  async function handlePostSubmit() {
+    if (!user) {
+      return;
+    }
+
+    setIsSubmittingPost(true);
+    setErrorMessage('');
+
+    const response = await fetch('/api/posts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userMongoId: user.publicMetadata.userMongoId,
+        text,
+        imageUrl: uploadedFileUrl,
+      }),
+    });
+
+    setIsSubmittingPost(false);
+
+    if (!response.ok) {
+      setErrorMessage(
+        `Unable to submit your post: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    location.reload();
+  }
+
   return (
-    <div className="flex w-full space-x-3 border-b border-gray-200 p-2">
-      <img
-        src={user?.imageUrl}
-        alt="User image"
-        className="h-11 w-11 rounded-full object-cover hover:brightness-95"
-      />
-      <div className="w-full divide-y divide-gray-200">
-        <textarea
-          className="min-h-[50px] w-full tracking-wide text-gray-700 outline-none"
-          name="text"
-          placeholder="What's new"
-          rows={2}
+    <SignedIn>
+      <div className="flex w-full space-x-3 border-b border-gray-200 p-2">
+        <img
+          src={user?.imageUrl}
+          alt="User image"
+          className="h-11 w-11 rounded-full object-cover hover:brightness-95"
         />
-        {(selectedFileUrl || uploadedFileUrl) && (
-          <>
-            <img
-              src={isUploadingFile ? selectedFileUrl : uploadedFileUrl}
-              alt="post image"
-              className={`max-h-[250] w-full cursor-pointer object-cover transition-all duration-200 hover:opacity-50 ${isUploadingFile ? 'animate-pulse' : ''}`}
-              onClick={handleFileInputInputClicked}
+        <div className="w-full divide-y divide-gray-200">
+          <textarea
+            className="min-h-[50px] w-full tracking-wide text-gray-700 outline-none"
+            name="text"
+            placeholder="What's new"
+            rows={2}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setText(e.target.value)
+            }
+            ref={textareaRef}
+          />
+          {(selectedFileUrl || uploadedFileUrl) && (
+            <>
+              <img
+                src={
+                  isUploadingFile && !!selectedFileUrl
+                    ? selectedFileUrl
+                    : uploadedFileUrl
+                }
+                alt="post image"
+                className={`max-h-[250] w-full cursor-pointer object-cover transition-all duration-200 hover:opacity-50 ${isUploadingFile ? 'animate-pulse' : ''}`}
+                onClick={handleSelectedFileImageClicked}
+              />
+            </>
+          )}
+          {errorMessage && (
+            <p className="border-b-0 text-sm font-medium text-red-500">
+              {errorMessage}
+            </p>
+          )}
+          <div className="flex flex-row items-center justify-between pt-2">
+            <HiOutlinePhotograph
+              className="h-10 w-10 cursor-pointer rounded-full p-2 text-sky-500 hover:bg-sky-200"
+              onClick={handleFileInputClicked}
             />
-          </>
-        )}
-        {uploadErrorMessage && (
-          <p className="border-b-0 text-sm font-medium text-red-500">
-            {uploadErrorMessage}
-          </p>
-        )}
-        <div className="flex flex-row items-center justify-between pt-2">
-          <HiOutlinePhotograph
-            className="h-10 w-10 cursor-pointer rounded-full p-2 text-sky-500 hover:bg-sky-200"
-            onClick={handleFileInputInputClicked}
-          />
-          <input
-            type="file"
-            name="file"
-            id="file"
-            multiple={false}
-            accept="image/*"
-            hidden
-            ref={fileInputRef}
-            onChange={handleFileSelected}
-          />
-          <button className="h-10 w-fit cursor-pointer rounded-2xl bg-blue-400 px-4 py-2 text-center text-sm font-bold text-white transition-all duration-200 hover:brightness-95 disabled:opacity-50">
-            Post
-          </button>
+            <input
+              type="file"
+              name="file"
+              id="file"
+              multiple={false}
+              accept="image/*"
+              hidden
+              ref={fileInputRef}
+              onChange={handleFileSelected}
+            />
+            <button
+              className="h-10 w-fit cursor-pointer rounded-2xl bg-blue-400 px-4 py-2 text-center text-sm font-bold text-white transition-all duration-200 hover:brightness-95 disabled:opacity-50"
+              disabled={
+                isSubmittingPost || text.trim().length === 0 || isUploadingFile
+              }
+              onClick={handlePostSubmit}
+            >
+              Post
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </SignedIn>
   );
 }

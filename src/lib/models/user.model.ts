@@ -1,61 +1,20 @@
-import mongoose, { InferSchemaType } from 'mongoose';
+import { IUser } from '@/types/user';
+import { Schema, models, model } from 'mongoose';
 
-const userSchema = new mongoose.Schema(
+const UserSchema = new Schema<IUser>(
   {
-    clerkId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    username: {
-      type: String,
-      required: true,
-    },
-    email: {
-      type: String,
-      required: true,
-    },
-    firstName: {
-      type: String,
-      required: true,
-    },
-    lastName: {
-      type: String,
-      required: true,
-    },
-    avatar: {
-      type: String,
-      required: true,
-    },
-    followers: {
-      type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
-        },
-      ],
-      default: [],
-      required: false
-    },
-    following: {
-      type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
-        },
-      ],
-      default: [],
-      required: false
-    },
+    clerkId: { type: String, required: true, unique: true },
+    username: { type: String, required: true },
+    email: { type: String, required: false },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    avatar: { type: String, required: true },
+    followers: [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }],
+    following: [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }],
   },
   { timestamps: true },
 );
 
-const User = mongoose.models.User || mongoose.model('User', userSchema);
-type UserType = Omit<
-  InferSchemaType<typeof userSchema>,
-  'createdAt' | 'updatedAt'
->;
+const UserModel = models.User || model('User', UserSchema);
 
-export default User;
-export type { UserType };
+export default UserModel;

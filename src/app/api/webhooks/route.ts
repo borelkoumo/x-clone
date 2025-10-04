@@ -1,5 +1,5 @@
 import { createOrUpdateUser, deleteUser } from '@/lib/actions/user';
-import { UserType } from '@/lib/models/user.model';
+import { UserSchema } from '@/lib/validation/user.schema';
 import { clerkClient } from '@clerk/nextjs/server';
 import { verifyWebhook } from '@clerk/nextjs/webhooks';
 import { NextRequest } from 'next/server';
@@ -11,19 +11,19 @@ export async function POST(req: NextRequest) {
     switch (evt.type) {
       case 'user.created':
       case 'user.updated':
-        const user: UserType = {
+        const parsedBody = UserSchema.parse({
           clerkId: evt.data.id,
-          firstName: evt.data.first_name ?? '',
-          lastName: evt.data.last_name ?? '',
           username: evt.data.username ?? '',
           email: evt.data.email_addresses?.[0]?.email_address ?? '',
+          firstName: evt.data.first_name ?? '',
+          lastName: evt.data.last_name ?? '',
           avatar: evt.data.image_url ?? '',
-        };
+        });
         try {
-          const updatedUser = await createOrUpdateUser(user);
+          const updatedUser = await createOrUpdateUser(parsedBody);
 
           if (updatedUser && evt.type === 'user.created') {
-            (await clerkClient()).users.updateUserMetadata(user.clerkId, {
+            (await clerkClient()).users.updateUserMetadata(parsedBody.clerkId, {
               publicMetadata: {
                 userMongoId: updatedUser._id,
               },

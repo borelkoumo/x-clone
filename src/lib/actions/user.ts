@@ -1,9 +1,10 @@
-import User, { UserType } from '@/lib/models/user.model';
+import UserModel from '@/lib/models/user.model';
 import { connect } from '../mongodb/mongoose';
+import { UserInput } from '../validation/user.schema';
 
-export async function createOrUpdateUser(user: UserType) {
+export async function createOrUpdateUser(user: UserInput) {
   await connect();
-  const result = await User.findOneAndUpdate(
+  const result = await UserModel.findOneAndUpdate(
     { clerkId: user.clerkId },
     { $set: user },
     { new: true, upsert: true },
@@ -14,6 +15,6 @@ export async function createOrUpdateUser(user: UserType) {
 export async function deleteUser(id: string | undefined) {
   await connect();
   if (id) {
-    await User.deleteOne({ clerkId: id });
+    await UserModel.deleteOne({ clerkId: id });
   }
 }
