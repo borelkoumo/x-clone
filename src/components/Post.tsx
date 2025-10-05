@@ -11,6 +11,7 @@ dayjs.extend(relativeTime);
 export default function Post({ post }: { post: IPost }) {
   const user = post.user as IUser;
   const postDate = dayjs(post.createdAt).fromNow();
+
   return (
     <div className="flex w-full border-b border-gray-200 p-3 hover:bg-gray-50">
       <Link href={`/users/${user.username}`}>
@@ -44,7 +45,6 @@ export default function Post({ post }: { post: IPost }) {
         )}
         {post.imageUrl && (
           <Link href={`/posts/${post._id}`}>
-            <p className="my-3 w-full text-sm text-gray-800">{post.text}</p>
             <img
               src={post.imageUrl}
               alt="post image"

@@ -184,8 +184,8 @@ export default function Input() {
       setErrorMessage(
         `Unable to submit your post: ${response.status} ${response.statusText}`,
       );
+      return;
     }
-
     location.reload();
   }
 

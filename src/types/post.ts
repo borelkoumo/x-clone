@@ -4,10 +4,6 @@ import { IUser } from './user';
 export type IPost = (
   | {
       _id: string; // généré par MongoDB
-      user: Types.ObjectId;
-    }
-  | {
-      _id: string; // généré par MongoDB
       user: string;
     }
   | {
@@ -19,4 +15,5 @@ export type IPost = (
   imageUrl?: string;
   createdAt: string; // ajouté par timestamps
   updatedAt: string; // ajouté par timestamps
+  likes: string[];
 };

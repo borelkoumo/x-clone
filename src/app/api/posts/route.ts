@@ -18,8 +18,8 @@ export async function POST(req: NextRequest) {
     imageUrl: body.imageUrl,
   });
 
-  console.log('body', body)
-  console.log('parsedBody', parsedBody)
+  console.log('body', body);
+  console.log('parsedBody', parsedBody);
 
   if (user.publicMetadata.userMongoId !== parsedBody.user) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });

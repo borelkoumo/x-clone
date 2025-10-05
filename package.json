@@ -9,10 +9,12 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc -b",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "migrate:posts": "dotenvx run --env-file=.env.local -- pnpx tsx scripts/migrate-post-user-to-string.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.32.0",
+    "@dotenvx/dotenvx": "github:dotenvx/dotenvx",
     "dayjs": "^1.11.18",
     "firebase": "^12.3.0",
     "mongodb": "^6.20.0",
