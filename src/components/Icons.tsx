@@ -10,12 +10,14 @@ import {
 } from 'react-icons/hi';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { IUser } from '@/types/user';
 
 export default function Icons({ post }: { post: IPost }) {
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [likes, setLikes] = useState<string[]>(post.likes || []);
   const { user } = useUser();
   const router = useRouter();
+  const userMongoId = user?.publicMetadata.userMongoId as string;
 
   useEffect(() => {
     if (user && likes.includes(user.publicMetadata.userMongoId as string)) {
@@ -76,6 +78,40 @@ export default function Icons({ post }: { post: IPost }) {
     }
   }
 
+  async function deletePost(
+    event: React.MouseEvent<SVGAElement, MouseEvent>,
+  ): Promise<void> {
+    event.preventDefault();
+
+    if (!user) {
+      return router.push('/sign-in');
+    }
+
+    try {
+      const result = await fetch('/api/posts', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ postId: post._id }),
+      });
+
+      const { postDeleted, message } = await result.json();
+
+      if (postDeleted) {
+        location.reload();
+      } else {
+        console.log(message);
+      }
+    } catch (error) {
+      console.log('Deelting');
+    }
+  }
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="flex justify-start gap-5 p-2 text-gray-500">
       <HiOutlineChat className="h-8 w-8 cursor-pointer rounded-full p-2 transition duration-500 ease-in-out hover:bg-sky-100 hover:text-sky-500"></HiOutlineChat>
@@ -95,7 +131,12 @@ export default function Icons({ post }: { post: IPost }) {
       >
         {likes.length}
       </span>
-      <HiOutlineTrash className="h-8 w-8 cursor-pointer rounded-full p-2 transition duration-500 ease-in-out hover:bg-red-100 hover:text-red-500"></HiOutlineTrash>
+      {(post.user as IUser)._id === userMongoId && (
+        <HiOutlineTrash
+          onClick={deletePost}
+          className="h-8 w-8 cursor-pointer rounded-full p-2 transition duration-500 ease-in-out hover:bg-red-100 hover:text-red-500"
+        ></HiOutlineTrash>
+      )}
     </div>
   );
 }

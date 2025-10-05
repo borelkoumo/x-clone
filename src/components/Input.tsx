@@ -14,7 +14,7 @@ import {
 import { slugify } from '@/lib/utils/slugify';
 
 export default function Input() {
-  const { user } = useUser();
+  const { user, isSignedIn, isLoaded } = useUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -30,10 +30,6 @@ export default function Input() {
   const [isSubmittingPost, setIsSubmittingPost] = useState(false);
 
   const storage = getStorage(app);
-
-  // if (!isSignedIn || !isLoaded) {
-  //   return null;
-  // }
 
   useEffect(() => {
     if (!selectedFile) return;
@@ -187,6 +183,10 @@ export default function Input() {
       return;
     }
     location.reload();
+  }
+
+  if (!isSignedIn || !isLoaded) {
+    return null;
   }
 
   return (

@@ -114,3 +114,22 @@ export async function likePost(postId: string, userMongoId: string) {
 
   return !hasLiked;
 }
+
+export async function deletePost(
+  postId: string,
+  userMongoId: string,
+): Promise<{ postDeleted: boolean; message: string }> {
+  await connect();
+
+  // Atomic operation: find and delete only if the post belongs to the user
+  const deletedPost = await PostModel.findOneAndDelete({
+    _id: postId,
+    user: userMongoId,
+  });
+
+  if (!deletedPost) {
+    return { postDeleted: false, message: 'Post not found or unauthorized' };
+  }
+
+  return { postDeleted: true, message: 'Post deleted successfully' };
+}

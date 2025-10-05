@@ -1,5 +1,4 @@
-import { getPost, likePost } from '@/lib/actions/posts';
-import PostModel from '@/lib/models/post.model';
+import { likePost } from '@/lib/actions/posts';
 import LikeSchema from '@/lib/validation/like.schema';
 import { currentUser } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -24,7 +23,7 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({
       message: `Post ${liked ? 'liked' : 'unliked'} successfully`,
-      liked
+      liked,
     });
   } catch (error) {
     console.log(error);
