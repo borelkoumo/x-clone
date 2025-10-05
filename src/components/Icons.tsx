@@ -11,6 +11,7 @@ import {
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { IUser } from '@/types/user';
+import { useModal } from '@/contexts/ModalContext';
 
 export default function Icons({ post }: { post: IPost }) {
   const [isLiked, setIsLiked] = useState<boolean>(false);
@@ -18,6 +19,7 @@ export default function Icons({ post }: { post: IPost }) {
   const { user } = useUser();
   const router = useRouter();
   const userMongoId = user?.publicMetadata.userMongoId as string;
+  const { isOpen, setIsOpen, setPostId } = useModal();
 
   useEffect(() => {
     if (user && likes.includes(user.publicMetadata.userMongoId as string)) {
@@ -108,13 +110,24 @@ export default function Icons({ post }: { post: IPost }) {
     }
   }
 
+  function handleComment() {
+    if (!user) {
+      router.push('/sign-in');
+    }
+    setPostId(post._id);
+    setIsOpen(!isOpen);
+  }
+
   if (!user) {
     return null;
   }
 
   return (
     <div className="flex justify-start gap-5 p-2 text-gray-500">
-      <HiOutlineChat className="h-8 w-8 cursor-pointer rounded-full p-2 transition duration-500 ease-in-out hover:bg-sky-100 hover:text-sky-500"></HiOutlineChat>
+      <HiOutlineChat
+        onClick={handleComment}
+        className="h-8 w-8 cursor-pointer rounded-full p-2 transition duration-500 ease-in-out hover:bg-sky-100 hover:text-sky-500"
+      ></HiOutlineChat>
       {isLiked ? (
         <HiHeart
           onClick={likePost}

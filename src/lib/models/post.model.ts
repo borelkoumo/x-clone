@@ -4,7 +4,7 @@ import { Schema, model, models } from 'mongoose';
 const PostSchema = new Schema<IPost>(
   {
     user: {
-      type: Schema.Types.Mixed, // Accepts both ObjectId and String
+      type: Schema.Types.String, // Accepts both ObjectId and String
       ref: 'User',
       required: true,
     },
